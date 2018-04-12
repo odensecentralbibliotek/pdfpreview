@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * This file contains hooks for the pdfpreview module
@@ -143,8 +144,8 @@ function pdfpreview_field_formatter_view($entity_type, $entity, $field, $instanc
   foreach ($items as $delta => $item) {
     if (isset($item['display']) && !$item['display']) continue; //don't show hidden files
     if (($item['filemime'] == 'application/pdf') && ($preview_uri = _pdfpreview_create_preview($item, $image_style))) {
-      
-      
+
+
       $image_items[$delta] = array(
         'fid' => $item['fid'],
         'uri' => $preview_uri,
@@ -164,11 +165,6 @@ function pdfpreview_field_formatter_view($entity_type, $entity, $field, $instanc
             'entity' => $entity,
           ),
         );
-
-        drupal_add_js(array('pdfpreview' => array('filename' => array($item['filename']))), 'setting');
-        drupal_add_js(array('pdfpreview' => array('path' => array($uri[$delta]['path']))), 'setting');
-        drupal_add_js(array('pdfpreview' => array('fid' => array($item['fid']))), 'setting');
-        drupal_add_js(drupal_get_path('module', 'pdfpreview') . '/pdfpreview.js');
       }
     }
     else {
@@ -177,7 +173,7 @@ function pdfpreview_field_formatter_view($entity_type, $entity, $field, $instanc
     }
   }
 
-  
+
   // Render PDF preview files using the image or picture formatter.
   switch ($display['type']) {
     case 'pdfpreview':
@@ -194,6 +190,7 @@ function pdfpreview_field_formatter_view($entity_type, $entity, $field, $instanc
     $element[$delta]['#theme_wrappers'][] = 'pdfpreview_formatter';
     $element[$delta]['#settings'] = $settings;
     $element[$delta]['#fid'] = $items[$delta]['fid'];
+    $element[$delta]['filename'] = $items[$delta]['filename'];
 
     if(($element[$delta]['#settings']['image_link'] === 'pdf_file') && isset($uri)) {
       $element[$delta]['#path'] = $uri[$delta];
@@ -451,8 +448,13 @@ function theme_pdfpreview_formatter($variables) {
   $element = $variables['element'];
   $item = $element['#item'];
   $wrapper_tag = $element['#settings']['tag'];
+  $filename = $element['filename'];
+
+
   $description = ($element['#settings']['show_description'] && isset($item['description'])) ? '<' . $wrapper_tag . ' class="pdfpreview-description">' . $item['description'] . '</' . $wrapper_tag . '>' : '' ;
-  return sprintf(
+  $img = '<span id="file-' . $item['fid'] . '"><img class="file-icon" alt="" title="application/pdf" src="/modules/file/icons/application-pdf.png"></img><a href="' . $element['#path']['path'] . '" type="application/pdf;"> ' . $filename . '</a></span>';
+
+  return $img . sprintf(
     '<div class="pdfpreview" id="pdfpreview-%s">'
     . ' <%s class="pdfpreview-image-wrapper">%s</%s>'
     . ' %s'
